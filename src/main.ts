@@ -47,10 +47,15 @@ console.log('Выбранный товар:', productsModel.getSelectedItem());
 console.log('--- BasketModel ---');
 
 const testProduct = apiProducts.items[0];
+const testProduct2 = apiProducts.items[1];
+const testProduct3 = apiProducts.items[2];
+
 console.log('Корзина до добавления:', basketModel.getItems());
 
 basketModel.addItem(testProduct);
-console.log('После добавления:', basketModel.getItems());
+basketModel.addItem(testProduct2);
+basketModel.addItem(testProduct3);
+console.log('После добавления нескольких товаров:', basketModel.getItems());
 
 console.log('Стоимость корзины:', basketModel.getTotal());
 console.log('Количество товаров:', basketModel.getCount());
@@ -58,6 +63,11 @@ console.log('Проверка наличия товара:', basketModel.isInBas
 
 basketModel.removeItem(testProduct.id);
 console.log('После удаления:', basketModel.getItems());
+console.log('Количество товаров после удаления:', basketModel.getCount());
+
+basketModel.clear();
+console.log('После очистки корзины:', basketModel.getItems());
+console.log('Количество товаров после очистки:', basketModel.getCount());
 
 // ----- BuyerModel -----
 console.log('--- BuyerModel ---');
@@ -71,6 +81,10 @@ console.log('Проверка заполненности:', buyerModel.isComplet
 
 const errors = buyerModel.validate();
 console.log('Ошибки валидации:', errors);
+
+buyerModel.clear();
+console.log('После очистки данных покупателя:', buyerModel.getData());
+console.log('Проверка заполненности после очистки:', buyerModel.isComplete());
 
 
 // 3. ЗАПРОС К СЕРВЕРУ
