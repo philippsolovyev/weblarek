@@ -1,27 +1,10 @@
 import { IBuyer, TPayment, TErrors } from "../../types";
 
-export class BuyerModel implements IBuyer {
+export class BuyerModel {
   private _payment: TPayment | null = null;
   private _email: string = "";
   private _phone: string = "";
   private _address: string = "";
-
-  // Геттеры для доступа к полям (если понадобятся)
-  get payment(): TPayment | null {
-    return this._payment;
-  }
-
-  get email(): string {
-    return this._email;
-  }
-
-  get phone(): string {
-    return this._phone;
-  }
-
-  get address(): string {
-    return this._address;
-  }
 
   setData(data: Partial<IBuyer>): void {
     if (data.payment !== undefined) this._payment = data.payment;
