@@ -281,3 +281,208 @@ Presenter - презентер содержит основную логику п
 | `basket:add` | `View` | `IProduct` | `BasketModel.addItem()` |
 | `basket:remove` | `View` | `string` (id) | `BasketModel.removeItem()` |
 | `order:submit` | `View` | `IOrder` | `AppApi.postOrder()` |
+
+## Компоненты представления (View)
+
+Все компоненты представления наследуются от базового класса `Component` и находятся в папке `src/components/view/`. Каждый компонент отвечает за отображение своей части интерфейса.
+
+### Класс `Header`
+
+Отвечает за отображение шапки сайта с логотипом и корзиной.
+
+**Конструктор:**  
+`constructor(container: HTMLElement, events: IEvents)` — принимает DOM-элемент шапки и брокер событий.
+
+**Поля класса:**  
+- `_counterElement: HTMLElement` — элемент, отображающий количество товаров в корзине.
+- `_basketButton: HTMLButtonElement` — кнопка открытия корзины.
+
+**Сеттеры:**  
+- `counter(value: number)` — обновляет счетчик товаров в корзине.
+
+**Генерируемые события:**  
+- `basket:open` — при клике на кнопку корзины.
+
+---
+
+### Класс `Gallery`
+
+Отвечает за отображение каталога товаров.
+
+**Конструктор:**  
+`constructor(container: HTMLElement)` — принимает DOM-элемент контейнера галереи.
+
+**Поля класса:**  
+- `_container: HTMLElement` — контейнер для карточек товаров.
+
+**Сеттеры:**  
+- `catalog(items: HTMLElement[])` — устанавливает список карточек в галерею.
+
+---
+
+### Класс `Card`
+
+Базовый абстрактный класс для всех видов карточек товаров. Содержит общие свойства и методы.
+
+#### Наследники:
+
+**`CardCatalog`** — карточка товара в каталоге.
+- **Конструктор:** `(container: HTMLElement, events: IEvents)`
+- **Сеттер `data(product: IProduct)`** — заполняет карточку данными товара.
+- **Генерируемые события:** `card:select` (клик по карточке), `card:buy` (клик по кнопке "Купить").
+
+**`CardPreview`** — карточка товара в модальном окне (детальный просмотр).
+- **Конструктор:** `(container: HTMLElement, events: IEvents)`
+- **Сеттеры:** `data(product: IProduct)`, `buttonText(value: string)`, `buttonDisabled(value: boolean)`, `buttonAction(action: () => void)`.
+- **Генерируемые события:** через `buttonAction` вызывается внешний обработчик (добавление/удаление товара).
+
+**`CardBasket`** — карточка товара в корзине.
+- **Конструктор:** `(container: HTMLElement, events: IEvents)`
+- **Сеттер `data(value: IProduct & { index: number })`** — заполняет карточку данными и номером позиции.
+- **Генерируемые события:** `basket:remove` (клик по кнопке удаления).
+
+---
+
+### Класс `Basket`
+
+Отвечает за отображение корзины.
+
+**Конструктор:**  
+`constructor(container: HTMLElement, events: IEvents)` — принимает DOM-элемент корзины и брокер событий.
+
+**Поля класса:**  
+- `_list: HTMLElement` — список товаров в корзине.
+- `_total: HTMLElement` — элемент для отображения общей стоимости.
+- `_button: HTMLButtonElement | null` — кнопка "Оформить".
+
+**Сеттеры:**  
+- `items(value: HTMLElement[])` — устанавливает список товаров.
+- `total(value: number)` — устанавливает общую стоимость.
+
+**Генерируемые события:**  
+- `basket:checkout` — при клике на кнопку "Оформить".
+
+---
+
+### Класс `Modal`
+
+Отвечает за отображение модальных окон.
+
+**Конструктор:**  
+`constructor(container: HTMLElement, events: IEvents)` — принимает DOM-элемент модального окна и брокер событий.
+
+**Поля класса:**  
+- `_closeButton: HTMLButtonElement` — кнопка закрытия.
+- `_content: HTMLElement` — контейнер для содержимого модалки.
+
+**Сеттеры:**  
+- `content(value: HTMLElement)` — устанавливает содержимое модального окна.
+
+**Методы:**  
+- `open(): void` — открывает модальное окно.
+- `close(): void` — закрывает модальное окно.
+- `isOpen(): boolean` — возвращает состояние модального окна.
+
+**Генерируемые события:**  
+- `modal:close` — при закрытии модального окна.
+
+---
+
+### Класс `FormOrder`
+
+Отвечает за отображение формы оформления заказа (шаг 1: способ оплаты + адрес).
+
+**Конструктор:**  
+`constructor(container: HTMLElement, events: IEvents)` — принимает DOM-элемент формы и брокер событий.
+
+**Поля класса:**  
+- `_addressInput: HTMLInputElement | null` — поле ввода адреса.
+- `_cardButton: HTMLButtonElement | null` — кнопка выбора оплаты картой.
+- `_cashButton: HTMLButtonElement | null` — кнопка выбора оплаты наличными.
+- `_hasAttemptedSubmit: boolean` — флаг, была ли попытка отправки формы.
+
+**Сеттеры:**  
+- `payment(value: string | null)` — устанавливает выбранный способ оплаты.
+- `address(value: string | null)` — устанавливает значение поля адреса.
+- `errors(value: Record<string, string>)` — устанавливает сообщения об ошибках.
+- `valid(value: boolean)` — блокирует/разблокирует кнопку "Далее".
+
+**Методы:**  
+- `showErrors(): void` — включает режим отображения ошибок.
+- `reset(): void` — сбрасывает состояние формы.
+
+**Генерируемые события:**  
+- `order:payment` — при выборе способа оплаты.
+- `order:address` — при вводе адреса.
+- `order:next` — при нажатии кнопки "Далее".
+
+---
+
+### Класс `FormContacts`
+
+Отвечает за отображение формы контактов (шаг 2: email + телефон).
+
+**Конструктор:**  
+`constructor(container: HTMLElement, events: IEvents)` — принимает DOM-элемент формы и брокер событий.
+
+**Поля класса:**  
+- `_emailInput: HTMLInputElement | null` — поле ввода email.
+- `_phoneInput: HTMLInputElement | null` — поле ввода телефона.
+- `_hasAttemptedSubmit: boolean` — флаг, была ли попытка отправки формы.
+
+**Сеттеры:**  
+- `email(value: string | null)` — устанавливает значение поля email.
+- `phone(value: string | null)` — устанавливает значение поля телефона.
+- `errors(value: Record<string, string>)` — устанавливает сообщения об ошибках.
+- `valid(value: boolean)` — блокирует/разблокирует кнопку "Оплатить".
+
+**Методы:**  
+- `showErrors(): void` — включает режим отображения ошибок.
+- `reset(): void` — сбрасывает состояние формы.
+
+**Генерируемые события:**  
+- `contacts:email` — при вводе email.
+- `contacts:phone` — при вводе телефона.
+- `contacts:pay` — при нажатии кнопки "Оплатить".
+
+---
+
+### Класс `Success`
+
+Отвечает за отображение сообщения об успешном оформлении заказа.
+
+**Конструктор:**  
+`constructor(container: HTMLElement, events: IEvents)` — принимает DOM-элемент и брокер событий.
+
+**Поля класса:**  
+- `_total: HTMLElement` — элемент для отображения списанной суммы.
+- `_button: HTMLButtonElement` — кнопка закрытия.
+
+**Сеттеры:**  
+- `total(value: number)` — устанавливает сумму, списанную за заказ.
+
+**Генерируемые события:**  
+- `success:close` — при клике на кнопку "За новыми покупками!".
+
+---
+
+## Полная карта событий в приложении
+
+| Событие | Источник | Данные | Обработчик |
+|---------|----------|--------|------------|
+| `products:loaded` | `AppApi` | `IProduct[]` | `ProductsModel.setItems()` → `renderGallery()` |
+| `card:select` | `CardCatalog` | `IProduct` | `ProductsModel.setSelectedItem()` → `renderProductPreview()` |
+| `card:buy` | `CardCatalog` | `IProduct` | `BasketModel.addItem()` → `basket:changed` |
+| `basket:add` | `CardPreview` | `IProduct` | `BasketModel.addItem()` → `basket:changed` → `modal.close()` |
+| `basket:remove` | `CardPreview` / `CardBasket` | `{ id: string }` | `BasketModel.removeItem()` → `basket:changed` → `modal.close()` |
+| `basket:changed` | `BasketModel` | — | `Header.counter`, `Basket.render()` |
+| `basket:open` | `Header` | — | `Basket.render()` → `Modal.open()` |
+| `basket:checkout` | `Basket` | — | `FormOrder.render()` → `Modal.open()` |
+| `order:payment` | `FormOrder` | `{ payment: string }` | `BuyerModel.setData()` → `renderFormOrder()` |
+| `order:address` | `FormOrder` | `{ address: string }` | `BuyerModel.setData()` → `renderFormOrder()` |
+| `order:next` | `FormOrder` | — | `FormContacts.render()` → `Modal.update()` |
+| `contacts:email` | `FormContacts` | `{ email: string }` | `BuyerModel.setData()` → `renderFormContacts()` |
+| `contacts:phone` | `FormContacts` | `{ phone: string }` | `BuyerModel.setData()` → `renderFormContacts()` |
+| `contacts:pay` | `FormContacts` | — | `AppApi.postOrder()` → `Success.render()` |
+| `success:close` | `Success` | — | `Modal.close()` |
+| `modal:close` | `Modal` | — | `FormOrder.reset()`, `FormContacts.reset()` |

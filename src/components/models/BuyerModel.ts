@@ -29,25 +29,40 @@ export class BuyerModel {
     this._address = "";
   }
 
-  validate(): TErrors<IBuyer> {
+  // Валидация по шагам (только заполненность)
+  validateStep(step: 1 | 2): TErrors<IBuyer> {
     const errors: TErrors<IBuyer> = {};
 
-    if (!this._payment) {
-      errors.payment = "Не выбран вид оплаты";
-    }
-    if (!this._email) {
-      errors.email = "Укажите email";
-    }
-    if (!this._phone) {
-      errors.phone = "Укажите телефон";
-    }
-    if (!this._address) {
-      errors.address = "Укажите адрес доставки";
+    if (step === 1) {
+      if (!this._payment) {
+        errors.payment = "Не выбран вид оплаты";
+      }
+      if (!this._address) {
+        errors.address = "Укажите адрес доставки";
+      }
+    } else if (step === 2) {
+      if (!this._email) {
+        errors.email = "Укажите email";
+      }
+      if (!this._phone) {
+        errors.phone = "Укажите телефон";
+      }
     }
 
     return errors;
   }
 
+  // Проверка заполненности для конкретного шага
+  isStepComplete(step: 1 | 2): boolean {
+    if (step === 1) {
+      return !!this._payment && !!this._address;
+    } else if (step === 2) {
+      return !!this._email && !!this._phone;
+    }
+    return false;
+  }
+
+  // Полная проверка (все поля) - для отправки заказа
   isComplete(): boolean {
     return !!this._payment && !!this._email && !!this._phone && !!this._address;
   }
