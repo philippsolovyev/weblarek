@@ -1,14 +1,10 @@
 import { Component } from "../base/Component";
-import { IEvents } from "../base/Events";
 
 export class Modal extends Component<{ content: HTMLElement }> {
   private _closeButton: HTMLButtonElement;
   private _content: HTMLElement;
 
-  constructor(
-    container: HTMLElement,
-    protected events: IEvents,
-  ) {
+  constructor(container: HTMLElement) {
     super(container);
     this._closeButton = container.querySelector(
       ".modal__close",
@@ -50,7 +46,6 @@ export class Modal extends Component<{ content: HTMLElement }> {
   close() {
     this.container.classList.remove("modal_active");
     document.body.style.overflow = "";
-    this.events.emit("modal:close", {});
   }
 
   render(data: { content: HTMLElement }): HTMLElement {

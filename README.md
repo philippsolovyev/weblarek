@@ -327,19 +327,19 @@ Presenter - презентер содержит основную логику п
 #### Наследники:
 
 **`CardCatalog`** — карточка товара в каталоге.
-- **Конструктор:** `(container: HTMLElement, events: IEvents)`
+- **Конструктор:** `(container: HTMLElement, onClick: (product: IProduct) => void, onBuy: (product: IProduct) => void)`
 - **Сеттер `data(product: IProduct)`** — заполняет карточку данными товара.
-- **Генерируемые события:** `card:select` (клик по карточке), `card:buy` (клик по кнопке "Купить").
+- **Колбэки:** `onClick` — клик по карточке, `onBuy` — клик по кнопке "Купить".
 
 **`CardPreview`** — карточка товара в модальном окне (детальный просмотр).
-- **Конструктор:** `(container: HTMLElement, events: IEvents)`
-- **Сеттеры:** `data(product: IProduct)`, `buttonText(value: string)`, `buttonDisabled(value: boolean)`, `buttonAction(action: () => void)`.
-- **Генерируемые события:** через `buttonAction` вызывается внешний обработчик (добавление/удаление товара).
+- **Конструктор:** `(container: HTMLElement, onClick: () => void)`
+- **Сеттеры:** `data(product: IProduct)`, `buttonText(value: string)`, `buttonDisabled(value: boolean)`.
+- **Колбэк:** `onClick` — клик по кнопке в превью.
 
 **`CardBasket`** — карточка товара в корзине.
-- **Конструктор:** `(container: HTMLElement, events: IEvents)`
+- **Конструктор:** `(container: HTMLElement, onDelete: (id: string) => void)`
 - **Сеттер `data(value: IProduct & { index: number })`** — заполняет карточку данными и номером позиции.
-- **Генерируемые события:** `basket:remove` (клик по кнопке удаления).
+- **Колбэк:** `onDelete` — клик по кнопке удаления.
 
 ---
 
@@ -369,7 +369,7 @@ Presenter - презентер содержит основную логику п
 Отвечает за отображение модальных окон.
 
 **Конструктор:**  
-`constructor(container: HTMLElement, events: IEvents)` — принимает DOM-элемент модального окна и брокер событий.
+`constructor(container: HTMLElement)` — принимает DOM-элемент модального окна.
 
 **Поля класса:**  
 - `_closeButton: HTMLButtonElement` — кнопка закрытия.
@@ -383,14 +383,31 @@ Presenter - презентер содержит основную логику п
 - `close(): void` — закрывает модальное окно.
 - `isOpen(): boolean` — возвращает состояние модального окна.
 
-**Генерируемые события:**  
-- `modal:close` — при закрытии модального окна.
+---
+
+### Класс `Form`
+
+Базовый абстрактный класс для всех форм.
+
+**Конструктор:**  
+`constructor(container: HTMLElement)` — принимает DOM-элемент формы.
+
+**Поля класса:**  
+- `_form: HTMLFormElement` — элемент формы.
+- `_submitButton: HTMLButtonElement | null` — кнопка отправки.
+- `_errors: HTMLElement | null` — контейнер для ошибок.
+
+**Сеттеры:**  
+- `valid(value: boolean)` — блокирует/разблокирует кнопку отправки.
+
+**Защищенные методы:**  
+- `_setErrors(value: Record<string, string>, hasInteracted: boolean): void` — устанавливает ошибки, если было взаимодействие.
 
 ---
 
 ### Класс `FormOrder`
 
-Отвечает за отображение формы оформления заказа (шаг 1: способ оплаты + адрес).
+Отвечает за отображение формы оформления заказа (шаг 1: способ оплаты + адрес). Наследуется от `Form`.
 
 **Конструктор:**  
 `constructor(container: HTMLElement, events: IEvents)` — принимает DOM-элемент формы и брокер событий.
@@ -399,17 +416,12 @@ Presenter - презентер содержит основную логику п
 - `_addressInput: HTMLInputElement | null` — поле ввода адреса.
 - `_cardButton: HTMLButtonElement | null` — кнопка выбора оплаты картой.
 - `_cashButton: HTMLButtonElement | null` — кнопка выбора оплаты наличными.
-- `_hasAttemptedSubmit: boolean` — флаг, была ли попытка отправки формы.
+- `_hasInteracted: boolean` — флаг взаимодействия с формой.
 
 **Сеттеры:**  
 - `payment(value: string | null)` — устанавливает выбранный способ оплаты.
 - `address(value: string | null)` — устанавливает значение поля адреса.
 - `errors(value: Record<string, string>)` — устанавливает сообщения об ошибках.
-- `valid(value: boolean)` — блокирует/разблокирует кнопку "Далее".
-
-**Методы:**  
-- `showErrors(): void` — включает режим отображения ошибок.
-- `reset(): void` — сбрасывает состояние формы.
 
 **Генерируемые события:**  
 - `order:payment` — при выборе способа оплаты.
@@ -420,7 +432,7 @@ Presenter - презентер содержит основную логику п
 
 ### Класс `FormContacts`
 
-Отвечает за отображение формы контактов (шаг 2: email + телефон).
+Отвечает за отображение формы контактов (шаг 2: email + телефон). Наследуется от `Form`.
 
 **Конструктор:**  
 `constructor(container: HTMLElement, events: IEvents)` — принимает DOM-элемент формы и брокер событий.
@@ -428,17 +440,12 @@ Presenter - презентер содержит основную логику п
 **Поля класса:**  
 - `_emailInput: HTMLInputElement | null` — поле ввода email.
 - `_phoneInput: HTMLInputElement | null` — поле ввода телефона.
-- `_hasAttemptedSubmit: boolean` — флаг, была ли попытка отправки формы.
+- `_hasInteracted: boolean` — флаг взаимодействия с формой.
 
 **Сеттеры:**  
 - `email(value: string | null)` — устанавливает значение поля email.
 - `phone(value: string | null)` — устанавливает значение поля телефона.
 - `errors(value: Record<string, string>)` — устанавливает сообщения об ошибках.
-- `valid(value: boolean)` — блокирует/разблокирует кнопку "Оплатить".
-
-**Методы:**  
-- `showErrors(): void` — включает режим отображения ошибок.
-- `reset(): void` — сбрасывает состояние формы.
 
 **Генерируемые события:**  
 - `contacts:email` — при вводе email.
@@ -470,19 +477,20 @@ Presenter - презентер содержит основную логику п
 
 | Событие | Источник | Данные | Обработчик |
 |---------|----------|--------|------------|
-| `products:loaded` | `AppApi` | `IProduct[]` | `ProductsModel.setItems()` → `renderGallery()` |
-| `card:select` | `CardCatalog` | `IProduct` | `ProductsModel.setSelectedItem()` → `renderProductPreview()` |
-| `card:buy` | `CardCatalog` | `IProduct` | `BasketModel.addItem()` → `basket:changed` |
-| `basket:add` | `CardPreview` | `IProduct` | `BasketModel.addItem()` → `basket:changed` → `modal.close()` |
-| `basket:remove` | `CardPreview` / `CardBasket` | `{ id: string }` | `BasketModel.removeItem()` → `basket:changed` → `modal.close()` |
-| `basket:changed` | `BasketModel` | — | `Header.counter`, `Basket.render()` |
-| `basket:open` | `Header` | — | `Basket.render()` → `Modal.open()` |
-| `basket:checkout` | `Basket` | — | `FormOrder.render()` → `Modal.open()` |
-| `order:payment` | `FormOrder` | `{ payment: string }` | `BuyerModel.setData()` → `renderFormOrder()` |
-| `order:address` | `FormOrder` | `{ address: string }` | `BuyerModel.setData()` → `renderFormOrder()` |
-| `order:next` | `FormOrder` | — | `FormContacts.render()` → `Modal.update()` |
-| `contacts:email` | `FormContacts` | `{ email: string }` | `BuyerModel.setData()` → `renderFormContacts()` |
-| `contacts:phone` | `FormContacts` | `{ phone: string }` | `BuyerModel.setData()` → `renderFormContacts()` |
+| `products:loaded` | `ProductsModel` | `IProduct[]` | `renderGallery()` |
+| `product:selected` | `ProductsModel` | `IProduct` | `renderProductPreview()` |
+| `basket:changed` | `BasketModel` | `IProduct[]` | `renderBasket()`, `header.counter` |
+| `buyer:changed` | `BuyerModel` | `IBuyer` | `renderForms()` |
+| `card:select` | `CardCatalog` (колбэк) | `IProduct` | `ProductsModel.setSelectedItem()` |
+| `card:buy` | `CardCatalog` (колбэк) | `IProduct` | `BasketModel.addItem()` |
+| `preview:click` | `CardPreview` (колбэк) | — | `BasketModel.addItem()` / `removeItem()` → `modal.close()` |
+| `basket:remove` | `CardBasket` (колбэк) | `string` (id) | `BasketModel.removeItem()` |
+| `basket:open` | `Header` | — | `renderBasket()` → `Modal.open()` |
+| `basket:checkout` | `Basket` | — | `renderForms()` → `FormOrder` → `Modal.open()` |
+| `order:payment` | `FormOrder` | `{ payment: string }` | `BuyerModel.setData()` |
+| `order:address` | `FormOrder` | `{ address: string }` | `BuyerModel.setData()` |
+| `order:next` | `FormOrder` | — | `renderForms()` → `FormContacts` → `Modal.update()` |
+| `contacts:email` | `FormContacts` | `{ email: string }` | `BuyerModel.setData()` |
+| `contacts:phone` | `FormContacts` | `{ phone: string }` | `BuyerModel.setData()` |
 | `contacts:pay` | `FormContacts` | — | `AppApi.postOrder()` → `Success.render()` |
 | `success:close` | `Success` | — | `Modal.close()` |
-| `modal:close` | `Modal` | — | `FormOrder.reset()`, `FormContacts.reset()` |

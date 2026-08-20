@@ -1,4 +1,5 @@
 import { IBuyer, TPayment, TErrors } from "../../types";
+import { IEvents } from "../base/Events";
 
 export class BuyerModel {
   private _payment: TPayment | null = null;
@@ -6,11 +7,14 @@ export class BuyerModel {
   private _phone: string = "";
   private _address: string = "";
 
+  constructor(protected events: IEvents) {}
+
   setData(data: Partial<IBuyer>): void {
     if (data.payment !== undefined) this._payment = data.payment;
     if (data.email !== undefined) this._email = data.email;
     if (data.phone !== undefined) this._phone = data.phone;
     if (data.address !== undefined) this._address = data.address;
+    this.events.emit("buyer:changed", this.getData());
   }
 
   getData(): IBuyer {
@@ -27,42 +31,28 @@ export class BuyerModel {
     this._email = "";
     this._phone = "";
     this._address = "";
+    this.events.emit("buyer:changed", this.getData());
   }
 
-  // Валидация по шагам (только заполненность)
-  validateStep(step: 1 | 2): TErrors<IBuyer> {
+  validate(): TErrors<IBuyer> {
     const errors: TErrors<IBuyer> = {};
 
-    if (step === 1) {
-      if (!this._payment) {
-        errors.payment = "Не выбран вид оплаты";
-      }
-      if (!this._address) {
-        errors.address = "Укажите адрес доставки";
-      }
-    } else if (step === 2) {
-      if (!this._email) {
-        errors.email = "Укажите email";
-      }
-      if (!this._phone) {
-        errors.phone = "Укажите телефон";
-      }
+    if (!this._payment) {
+      errors.payment = "Не выбран вид оплаты";
+    }
+    if (!this._email) {
+      errors.email = "Укажите email";
+    }
+    if (!this._phone) {
+      errors.phone = "Укажите телефон";
+    }
+    if (!this._address) {
+      errors.address = "Укажите адрес доставки";
     }
 
     return errors;
   }
 
-  // Проверка заполненности для конкретного шага
-  isStepComplete(step: 1 | 2): boolean {
-    if (step === 1) {
-      return !!this._payment && !!this._address;
-    } else if (step === 2) {
-      return !!this._email && !!this._phone;
-    }
-    return false;
-  }
-
-  // Полная проверка (все поля) - для отправки заказа
   isComplete(): boolean {
     return !!this._payment && !!this._email && !!this._phone && !!this._address;
   }
