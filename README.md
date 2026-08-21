@@ -327,19 +327,19 @@ Presenter - презентер содержит основную логику п
 #### Наследники:
 
 **`CardCatalog`** — карточка товара в каталоге.
-- **Конструктор:** `(container: HTMLElement, onClick: (product: IProduct) => void, onBuy: (product: IProduct) => void)`
+- **Конструктор:** `(container: HTMLElement, onClick: () => void)` — принимает DOM-элемент и колбэк без параметров.
 - **Сеттер `data(product: IProduct)`** — заполняет карточку данными товара.
-- **Колбэки:** `onClick` — клик по карточке, `onBuy` — клик по кнопке "Купить".
+- **Колбэк:** `onClick` — клик по карточке (без параметров, ID товара зашивается при создании карточки в презентере).
 
 **`CardPreview`** — карточка товара в модальном окне (детальный просмотр).
-- **Конструктор:** `(container: HTMLElement, onClick: () => void)`
+- **Конструктор:** `(container: HTMLElement, onButtonClick: () => void)` — принимает DOM-элемент и колбэк без параметров.
 - **Сеттеры:** `data(product: IProduct)`, `buttonText(value: string)`, `buttonDisabled(value: boolean)`.
-- **Колбэк:** `onClick` — клик по кнопке в превью.
+- **Колбэк:** `onButtonClick` — клик по кнопке в превью (без параметров).
 
 **`CardBasket`** — карточка товара в корзине.
-- **Конструктор:** `(container: HTMLElement, onDelete: (id: string) => void)`
+- **Конструктор:** `(container: HTMLElement, onDelete: () => void)` — принимает DOM-элемент и колбэк без параметров.
 - **Сеттер `data(value: IProduct & { index: number })`** — заполняет карточку данными и номером позиции.
-- **Колбэк:** `onDelete` — клик по кнопке удаления.
+- **Колбэк:** `onDelete` — клик по кнопке удаления (без параметров, ID товара зашивается при создании карточки в презентере).
 
 ---
 
@@ -353,7 +353,7 @@ Presenter - презентер содержит основную логику п
 **Поля класса:**  
 - `_list: HTMLElement` — список товаров в корзине.
 - `_total: HTMLElement` — элемент для отображения общей стоимости.
-- `_button: HTMLButtonElement | null` — кнопка "Оформить".
+- `_button: HTMLButtonElement | null` — кнопка "Оформить" (изначально заблокирована).
 
 **Сеттеры:**  
 - `items(value: HTMLElement[])` — устанавливает список товаров.
@@ -416,7 +416,7 @@ Presenter - презентер содержит основную логику п
 - `_addressInput: HTMLInputElement | null` — поле ввода адреса.
 - `_cardButton: HTMLButtonElement | null` — кнопка выбора оплаты картой.
 - `_cashButton: HTMLButtonElement | null` — кнопка выбора оплаты наличными.
-- `_hasInteracted: boolean` — флаг взаимодействия с формой.
+- `_hasInteracted: boolean` — флаг взаимодействия с формой (ошибки показываются только после взаимодействия).
 
 **Сеттеры:**  
 - `payment(value: string | null)` — устанавливает выбранный способ оплаты.
@@ -440,7 +440,7 @@ Presenter - презентер содержит основную логику п
 **Поля класса:**  
 - `_emailInput: HTMLInputElement | null` — поле ввода email.
 - `_phoneInput: HTMLInputElement | null` — поле ввода телефона.
-- `_hasInteracted: boolean` — флаг взаимодействия с формой.
+- `_hasInteracted: boolean` — флаг взаимодействия с формой (ошибки показываются только после взаимодействия).
 
 **Сеттеры:**  
 - `email(value: string | null)` — устанавливает значение поля email.
@@ -481,15 +481,14 @@ Presenter - презентер содержит основную логику п
 | `product:selected` | `ProductsModel` | `IProduct` | `renderProductPreview()` |
 | `basket:changed` | `BasketModel` | `IProduct[]` | `renderBasket()`, `header.counter` |
 | `buyer:changed` | `BuyerModel` | `IBuyer` | `renderForms()` |
-| `card:select` | `CardCatalog` (колбэк) | `IProduct` | `ProductsModel.setSelectedItem()` |
-| `card:buy` | `CardCatalog` (колбэк) | `IProduct` | `BasketModel.addItem()` |
+| `card:select` | `CardCatalog` (колбэк) | — | `ProductsModel.setSelectedItem()` (ID зашит в колбэке) |
+| `basket:remove` | `CardBasket` (колбэк) | — | `BasketModel.removeItem()` (ID зашит в колбэке) |
 | `preview:click` | `CardPreview` (колбэк) | — | `BasketModel.addItem()` / `removeItem()` → `modal.close()` |
-| `basket:remove` | `CardBasket` (колбэк) | `string` (id) | `BasketModel.removeItem()` |
-| `basket:open` | `Header` | — | `renderBasket()` → `Modal.open()` |
-| `basket:checkout` | `Basket` | — | `renderForms()` → `FormOrder` → `Modal.open()` |
+| `basket:open` | `Header` | — | `Modal.open()` (только открытие, без перерисовки) |
+| `basket:checkout` | `Basket` | — | `Modal.open()` с формой заказа (только открытие) |
 | `order:payment` | `FormOrder` | `{ payment: string }` | `BuyerModel.setData()` |
 | `order:address` | `FormOrder` | `{ address: string }` | `BuyerModel.setData()` |
-| `order:next` | `FormOrder` | — | `renderForms()` → `FormContacts` → `Modal.update()` |
+| `order:next` | `FormOrder` | — | `Modal.open()` с формой контактов |
 | `contacts:email` | `FormContacts` | `{ email: string }` | `BuyerModel.setData()` |
 | `contacts:phone` | `FormContacts` | `{ phone: string }` | `BuyerModel.setData()` |
 | `contacts:pay` | `FormContacts` | — | `AppApi.postOrder()` → `Success.render()` |

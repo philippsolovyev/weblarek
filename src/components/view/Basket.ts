@@ -18,6 +18,7 @@ export class Basket extends Component<{ items: HTMLElement[]; total: number }> {
     ) as HTMLButtonElement | null;
 
     if (this._button) {
+      this._button.disabled = true;
       this._button.addEventListener("click", () => {
         this.events.emit("basket:checkout");
       });

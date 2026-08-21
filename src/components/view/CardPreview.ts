@@ -4,19 +4,17 @@ import { IProduct } from "../../types";
 export class CardPreview extends CardWithImage<IProduct> {
   private _description: HTMLElement;
   private _button: HTMLButtonElement | null;
-  private _onClick: () => void;
 
-  constructor(container: HTMLElement, onClick: () => void) {
+  constructor(container: HTMLElement, onButtonClick: () => void) {
     super(container);
     this._description = container.querySelector(".card__text") as HTMLElement;
     this._button = container.querySelector(
       ".card__button",
     ) as HTMLButtonElement | null;
-    this._onClick = onClick;
 
     if (this._button) {
       this._button.addEventListener("click", () => {
-        this._onClick();
+        onButtonClick();
       });
     }
   }

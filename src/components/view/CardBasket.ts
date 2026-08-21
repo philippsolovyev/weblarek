@@ -4,10 +4,9 @@ import { IProduct } from "../../types";
 export class CardBasket extends Card<IProduct> {
   private _index: HTMLElement;
   private _deleteButton: HTMLButtonElement | null;
-  private _onDelete: (id: string) => void;
-  private _productId: string | null = null;
+  private _onDelete: () => void;
 
-  constructor(container: HTMLElement, onDelete: (id: string) => void) {
+  constructor(container: HTMLElement, onDelete: () => void) {
     super(container);
     this._index = container.querySelector(".basket__item-index") as HTMLElement;
     this._deleteButton = container.querySelector(
@@ -17,16 +16,12 @@ export class CardBasket extends Card<IProduct> {
 
     if (this._deleteButton) {
       this._deleteButton.addEventListener("click", () => {
-        if (this._productId) {
-          this._onDelete(this._productId);
-        }
+        this._onDelete();
       });
     }
   }
 
   set data(value: IProduct & { index: number }) {
-    this._productId = value.id;
-
     this.title = value.title;
     this.price = value.price;
 

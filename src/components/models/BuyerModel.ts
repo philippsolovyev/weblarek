@@ -52,8 +52,4 @@ export class BuyerModel {
 
     return errors;
   }
-
-  isComplete(): boolean {
-    return !!this._payment && !!this._email && !!this._phone && !!this._address;
-  }
 }

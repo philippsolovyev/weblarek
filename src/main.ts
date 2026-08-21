@@ -24,7 +24,7 @@ import {
 } from "./components/view";
 
 import { API_URL } from "./utils/constants";
-import { IProduct, IOrder } from "./types";
+import { IOrder } from "./types";
 import { ensureElement, cloneTemplate } from "./utils/utils";
 
 // 1. СОЗДАЕМ ЭКЗЕМПЛЯРЫ ВСЕХ КЛАССОВ
@@ -53,15 +53,12 @@ const orderSuccess = new Success(cloneTemplate("#success"), events);
 function renderGallery(): void {
   const products = productsModel.getItems();
   const cards = products.map((product) => {
-    const card = new CardCatalog(
-      cloneTemplate("#card-catalog"),
-      (product: IProduct) => {
-        productsModel.setSelectedItem(product);
-      },
-      (product: IProduct) => {
-        basketModel.addItem(product);
-      },
-    );
+    const card = new CardCatalog(cloneTemplate("#card-catalog"), () => {
+      const selected = productsModel.getItemById(product.id);
+      if (selected) {
+        productsModel.setSelectedItem(selected);
+      }
+    });
     card.data = product;
     return card.render();
   });
@@ -71,8 +68,8 @@ function renderGallery(): void {
 function renderBasket(): void {
   const items = basketModel.getItems();
   const cards = items.map((item, index) => {
-    const card = new CardBasket(cloneTemplate("#card-basket"), (id: string) => {
-      basketModel.removeItem(id);
+    const card = new CardBasket(cloneTemplate("#card-basket"), () => {
+      basketModel.removeItem(item.id);
     });
     card.data = { ...item, index: index + 1 };
     return card.render();
@@ -116,33 +113,28 @@ function renderProductPreview(): void {
 
 function renderForms(): void {
   const data = buyerModel.getData();
+  const errors = buyerModel.validate();
 
-  // Ошибки для формы заказа
   const orderErrors: Record<string, string> = {};
-  if (!data.payment) orderErrors.payment = "Не выбран вид оплаты";
-  if (!data.address) orderErrors.address = "Укажите адрес доставки";
+  if (errors.payment) orderErrors.payment = errors.payment;
+  if (errors.address) orderErrors.address = errors.address;
 
-  // Ошибки для формы контактов
   const contactsErrors: Record<string, string> = {};
-  if (!data.email) contactsErrors.email = "Укажите email";
-  if (!data.phone) contactsErrors.phone = "Укажите телефон";
+  if (errors.email) contactsErrors.email = errors.email;
+  if (errors.phone) contactsErrors.phone = errors.phone;
 
-  // Заполняем форму заказа
   formOrder.payment = data.payment;
   formOrder.address = data.address;
   formOrder.errors = orderErrors;
-  formOrder.valid = !orderErrors.payment && !orderErrors.address;
+  formOrder.valid = !errors.payment && !errors.address;
 
-  // Заполняем форму контактов
   formContacts.email = data.email;
   formContacts.phone = data.phone;
   formContacts.errors = contactsErrors;
-  formContacts.valid = !contactsErrors.email && !contactsErrors.phone;
+  formContacts.valid = !errors.email && !errors.phone;
 }
 
 // 3. ПОДПИСКА НА СОБЫТИЯ (ПРЕЗЕНТЕР)
-
-// ----- События МОДЕЛЕЙ -----
 
 events.on("products:loaded", () => {
   renderGallery();
@@ -160,17 +152,12 @@ events.on("buyer:changed", () => {
   renderForms();
 });
 
-// ----- События ПРЕДСТАВЛЕНИЙ -----
-
 events.on("basket:open", () => {
-  renderBasket();
   modal.content = basket.render();
   modal.open();
 });
 
 events.on("basket:checkout", () => {
-  if (basketModel.getCount() === 0) return;
-  renderForms();
   modal.content = formOrder.render();
   modal.open();
 });
@@ -184,7 +171,6 @@ events.on("order:address", (data: { address: string }) => {
 });
 
 events.on("order:next", () => {
-  renderForms();
   modal.content = formContacts.render();
 });
 
@@ -197,16 +183,6 @@ events.on("contacts:phone", (data: { phone: string }) => {
 });
 
 events.on("contacts:pay", () => {
-  const errors = buyerModel.validate();
-  const hasErrors = Object.values(errors).some(
-    (e) => e !== undefined && e !== "",
-  );
-
-  if (hasErrors || !buyerModel.isComplete()) {
-    renderForms();
-    return;
-  }
-
   const orderData = buyerModel.getData();
   const items = basketModel.getItems();
 
